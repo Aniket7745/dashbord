@@ -3,13 +3,15 @@ import * as XLSX from 'xlsx';
 import path from 'path';
 import fs from 'fs';
 
+type ExcelRow = { [key: string]: string | number };
+
 export async function GET() {
   try {
     const filePath = path.join(process.cwd(), 'public', 'ads_and_sales_comparison_filtered.xlsx');
     const file = fs.readFileSync(filePath);
     const workbook = XLSX.read(file);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
 
     // Group data by period
     const currentData = jsonData.slice(-1)[0];
@@ -18,7 +20,7 @@ export async function GET() {
 
     // Process each metric
     const metrics = Object.keys(currentData).filter(key => key !== 'Date');
-    const trends: { [key: string]: any } = {};
+    const trends: { [key: string]: { values: number[]; labels: string[]; max: number; min: number } } = {};
 
     metrics.forEach(metric => {
       const values = trendDataPoints.map(point => Number(point[metric]));
@@ -37,7 +39,7 @@ export async function GET() {
       return value.toLocaleString();
     };
 
-    const formatData = (data: any) => {
+    const formatData = (data: ExcelRow) => {
       const formatted: { [key: string]: string | number } = {};
       metrics.forEach(metric => {
         const value = Number(data[metric]);

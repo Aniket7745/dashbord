@@ -42,19 +42,6 @@ const getIconForMetric = (metricName: string) => {
   return PresentationChartLineIcon;
 };
 
-const getMetricColor = (metricName: string): string => {
-  const name = metricName.toLowerCase();
-  if (name.includes('impressions')) return 'from-blue-500 to-blue-400';
-  if (name.includes('clicks')) return 'from-purple-500 to-purple-400';
-  if (name.includes('ctpr')) return 'from-green-500 to-green-400';
-  if (name.includes('cost')) return 'from-red-500 to-red-400';
-  if (name.includes('cpc')) return 'from-orange-500 to-orange-400';
-  if (name.includes('sales')) return 'from-teal-500 to-teal-400';
-  if (name.includes('quantity')) return 'from-pink-500 to-pink-400';
-  if (name.includes('conversion')) return 'from-indigo-500 to-indigo-400';
-  return 'from-gray-500 to-gray-400';
-};
-
 const formatValue = (value: string | number) => {
   if (typeof value === 'number') {
     if (value > 1000000) return `${(value / 1000000).toFixed(2)}M`;

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { ChartEvent, ActiveElement, TooltipItem } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -60,8 +61,8 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
         padding: 12,
         displayColors: false,
         callbacks: {
-          label: (context: any) => {
-            const value = context.raw;
+          label: (context: TooltipItem<'doughnut'>) => {
+            const value = context.parsed;
             const percentage = context.dataIndex === 0 ? adSalesPercentage : organicSalesPercentage;
             const change = context.dataIndex === 0 ? monthOverMonthChange.ad : monthOverMonthChange.organic;
             return [
@@ -69,6 +70,9 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
               `Share: ${percentage}%`,
               `MoM Change: ${change > 0 ? '+' : ''}${change}%`
             ];
+          },
+          value: function(context: TooltipItem<'doughnut'>) {
+            return context.parsed;
           }
         }
       }
@@ -79,7 +83,7 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
       animateRotate: true,
       duration: 800,
     },
-    onHover: (_: any, elements: any[]) => {
+    onHover: (event: ChartEvent, elements: ActiveElement[]) => {
       if (elements.length) {
         setHoveredSegment(elements[0].index);
       } else {

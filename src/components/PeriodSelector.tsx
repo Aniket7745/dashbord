@@ -1,9 +1,7 @@
-import { useState } from 'react';
-
-interface PeriodSelectorProps {
+type PeriodSelectorProps = {
   onPeriodChange: (period: 'Current' | 'Previous') => void;
   currentPeriod: 'Current' | 'Previous';
-}
+};
 
 export const PeriodSelector = ({ onPeriodChange, currentPeriod }: PeriodSelectorProps) => {
   return (

@@ -64,7 +64,7 @@ export const DetailedMetricsBarChart: React.FC<DetailedMetricsBarChartProps> = (
       },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => {
+          label: (ctx: { dataIndex: number; parsed: { y: number } }) => {
             const metric = metrics[ctx.dataIndex];
             const lines = [
               `Growth: ${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y.toFixed(1)}%`
@@ -86,7 +86,7 @@ export const DetailedMetricsBarChart: React.FC<DetailedMetricsBarChartProps> = (
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(this: any, tickValue: string | number) {
+          callback: function(this: unknown, tickValue: string | number) {
             const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
             return `${value > 0 ? '+' : ''}${value}%`;
           },

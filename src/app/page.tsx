@@ -3,14 +3,9 @@
 import { useState, useEffect } from 'react';
 import { MetricCard } from '@/components/MetricCard';
 import { DetailedDataTable } from '@/components/DetailedDataTable';
-import { DashboardHeader } from '@/components/DashboardHeader';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { SalesDistributionPie } from '@/components/SalesDistributionPie';
-import { PerformanceBarChart } from '@/components/PerformanceBarChart';
 import { DetailedMetricsBarChart } from '@/components/DetailedMetricsBarChart';
-
-type MetricKey = 'Impressions' | 'Clicks' | 'CTPR' | 'Ad Cost' | 'CPC' | 'Sales' | 
-                 'Ad Sales' | 'Ad Quantity' | 'Ad GRP' | 'Conversion%' | 'ACOS' | 'Ad Sales %';
 
 interface PeriodData {
   [key: string]: string;
@@ -73,14 +68,12 @@ const generateTrendData = (metricName: string) => {
 
 export default function Home() {
   const [currentPeriod, setCurrentPeriod] = useState<'Current' | 'Previous'>('Current');
-  const [excelMetrics, setExcelMetrics] = useState<any[]>([]);
   const data = sampleData[currentPeriod];
 
   useEffect(() => {
     fetch('/api/excel-metrics')
       .then(res => res.json())
-      .then(setExcelMetrics)
-      .catch(() => setExcelMetrics([]));
+      .catch(() => {});
   }, []);
 
   const handlePeriodChange = (period: 'Current' | 'Previous') => {
