@@ -16,7 +16,8 @@ import {
   Filler
 } from 'chart.js';
 import { TrendData } from '@/utils/excelUtils';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 
 ChartJS.register(
   CategoryScale,
@@ -52,8 +53,24 @@ const formatValue = (value: string | number) => {
   return value;
 };
 
-export const MetricCard = ({ title, value, trendData }: MetricCardProps) => {
+const metricDescriptions: { [key: string]: string } = {
+  'Impressions': 'The total number of times your ad was shown. High impressions indicate good reach, but not necessarily engagement.',
+  'Clicks': 'The number of times users clicked your ad. More clicks usually mean higher engagement.',
+  'CTPR': 'Click-Through Performance Rate: the ratio of clicks to impressions, showing how effective your ad is at generating interest.',
+  'Ad Cost': 'The total amount spent on advertising. Monitor this to control your marketing budget.',
+  'CPC': 'Cost Per Click: the average amount you pay for each click on your ad.',
+  'ACOS': 'Advertising Cost of Sales: the percentage of sales spent on advertising. Lower is usually better.',
+  'Sales': 'Total sales revenue generated in the selected period.',
+  'Ad Sales': 'Sales attributed directly to your ads.',
+  'Ad Sales %': 'The percentage of total sales that came from ads.',
+  'Ad Quantity': 'The number of items sold through ads.',
+  'Ad GRP': 'Ad Gross Rating Points: a measure of ad exposure and frequency.',
+  'Conversion%': 'The percentage of clicks that resulted in a sale.',
+};
+
+export const MetricCard = ({ title, value, trendData, previousValue }: MetricCardProps & { previousValue?: string | number }) => {
   const [hovered, setHovered] = useState(false);
+  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null);
   const Icon = getIconForMetric(title);
   const colors = {
     bg: title.toLowerCase().includes('impressions') ? 'bg-blue-100' :
@@ -94,13 +111,47 @@ export const MetricCard = ({ title, value, trendData }: MetricCardProps) => {
 
   const chartData = trendData || defaultTrendData;
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
+
   return (
     <div
-      className="bg-white rounded-xl shadow-lg p-6 transition duration-300 hover:scale-105"
+      className="relative bg-white rounded-xl shadow-lg p-6 transition duration-300 hover:scale-105"
       style={hovered ? { boxShadow: `0 0 24px 4px ${colors.chart.replace('rgb', 'rgba').replace(')', ',0.18)')}` } : {}}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={e => {
+        const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+        setPanelPos({
+          left: rect.left + rect.width / 2,
+          top: rect.top - 12 // 12px offset for -top-6
+        });
+        setHovered(true);
+      }}
       onMouseLeave={() => setHovered(false)}
     >
+      {hovered && panelPos && isClient && ReactDOM.createPortal(
+        <div
+          className="fixed z-[9999] w-[420px] bg-white rounded-2xl shadow-2xl p-5 border border-gray-200 animate-fade-in-up"
+          style={{
+            left: panelPos.left - 210, // center horizontally
+            top: Math.max(panelPos.top, 16), // don't go above 16px from top
+          }}
+          onMouseLeave={() => setHovered(false)}
+        >
+          <h3 className="text-2xl font-extrabold text-gray-900 mb-3">{title.toUpperCase().replace(/_/g, ' ')}</h3>
+          <div className="flex flex-row items-center gap-4 mb-3">
+            <div>
+              <div className="text-gray-500 text-sm">Current</div>
+              <div className="text-2xl font-bold mb-2" style={{ color: colors.chart }}>{formatValue(value)}</div>
+              <div className="text-gray-500 text-sm">Previous</div>
+              <div className="text-xl font-semibold text-gray-700">{formatValue(previousValue ?? 0)}</div>
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-600 text-sm mb-0">{metricDescriptions[title.replace(/_/g, ' ')] || 'No description available.'}</p>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
