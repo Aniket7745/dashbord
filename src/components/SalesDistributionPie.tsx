@@ -29,16 +29,16 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
       {
         data: [adSales, organicSales],
         backgroundColor: [
-          hoveredSegment === 0 ? 'rgba(79, 70, 229, 0.9)' : 'rgba(79, 70, 229, 0.7)',
-          hoveredSegment === 1 ? 'rgba(16, 185, 129, 0.9)' : 'rgba(16, 185, 129, 0.7)',
+          hoveredSegment === 0 ? 'rgb(79, 70, 229)' : 'rgba(79, 70, 229, 0.8)',
+          hoveredSegment === 1 ? 'rgb(16, 185, 129)' : 'rgba(16, 185, 129, 0.8)',
         ],
         borderColor: [
-          'rgb(79, 70, 229)',
-          'rgb(16, 185, 129)',
+          'white',
+          'white',
         ],
-        borderWidth: hoveredSegment !== null ? 2 : 1,
-        hoverOffset: 8,
-        hoverBorderWidth: 2,
+        borderWidth: 2,
+        hoverOffset: 12,
+        hoverBorderWidth: 4,
         offset: [hoveredSegment === 0 ? 8 : 0, hoveredSegment === 1 ? 8 : 0],
       }
     ]
@@ -111,21 +111,27 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
     >
       <div className="p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-medium text-gray-500">{title}</span>
+          <span className={`text-sm font-medium text-gray-500 ${hoveredSegment === index ? 'font-semibold text-gray-700' : ''}`}>{title}</span>
           <span className={`text-sm font-medium ${
-            change > 0 ? 'text-green-600' : 'text-red-600'
+            hoveredSegment === index 
+              ? `text-${colorClass}-700 text-xl font-extrabold` 
+              : change > 0 ? 'text-green-600' : 'text-red-600'
           }`}>
             {change > 0 ? '↑' : '↓'} {Math.abs(change)}%
           </span>
         </div>
         <div className="flex items-baseline space-x-1">
           <span className={`text-xl font-bold ${
-            hoveredSegment === index ? `text-${colorClass}-700` : 'text-gray-900'
+            hoveredSegment === index 
+              ? `text-${colorClass}-700 text-2xl font-extrabold` 
+              : value < 0 ? 'text-red-600' : `text-${colorClass}-600`
           }`}>
             ${value.toLocaleString()}
           </span>
           <span className={`text-sm ${
-            hoveredSegment === index ? `text-${colorClass}-600` : 'text-gray-500'
+            hoveredSegment === index 
+              ? `text-${colorClass}-600 text-base font-semibold` 
+              : value < 0 ? 'text-red-600' : `text-${colorClass}-500`
           }`}>
             ({percentage}%)
           </span>
@@ -150,17 +156,17 @@ export const SalesDistributionPie = ({ adSales, totalSales }: SalesDistributionP
               ? 'transform scale-90 opacity-50' 
               : 'transform scale-100 opacity-100'
           }`}>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-4xl font-extrabold text-gray-900">
               ${totalSales.toLocaleString()}
             </div>
-            <div className="text-sm font-medium text-gray-500">
+            <div className="text-base font-medium text-gray-600 mt-1">
               Total Sales
             </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4 mt-6">
         {renderMetricCard(
           'Ad Sales',
           adSales,

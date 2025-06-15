@@ -67,6 +67,7 @@ const generateTrendData = (metricName: string) => {
 
 export default function Home() {
   const [currentPeriod, setCurrentPeriod] = useState<'Current' | 'Previous'>('Current');
+  const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
   const data = sampleData[currentPeriod];
 
   useEffect(() => {
@@ -110,6 +111,18 @@ export default function Home() {
       value: sampleData.Current['Ad Cost'],
       previousValue: sampleData.Previous['Ad Cost']
     },
+    {
+      label: 'CPC',
+      growth: ((parseValue(sampleData.Current.CPC) - parseValue(sampleData.Previous.CPC)) / parseValue(sampleData.Previous.CPC)) * 100,
+      value: sampleData.Current.CPC,
+      previousValue: sampleData.Previous.CPC
+    },
+    {
+      label: 'Sales',
+      growth: ((parseValue(sampleData.Current.Sales) - parseValue(sampleData.Previous.Sales)) / parseValue(sampleData.Previous.Sales)) * 100,
+      value: sampleData.Current.Sales,
+      previousValue: sampleData.Previous.Sales
+    }
   ];
 
   // Organize metrics into groups
@@ -120,54 +133,53 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
-      <div className="max-w-8xl mx-auto p-6 space-y-6">
-        {/* Header Section */}
-        <div className="relative rounded-2xl shadow-lg mb-8 overflow-hidden" style={{ background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)' }}>
-          {/* Decorative SVG */}
-          <svg className="absolute top-0 right-0 h-full w-1/3 opacity-20 pointer-events-none" viewBox="0 0 400 150" fill="none">
-            <ellipse cx="200" cy="75" rx="200" ry="75" fill="#6366f1" />
-          </svg>
-          <div className="relative z-1 flex items-center justify-between px-10 py-8 backdrop-blur-md bg-white/60">
-            <div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span>Analytics</span>
-                <span>→</span>
-                <span className="font-medium text-gray-900">Dashboard</span>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 mt-2">Sales Analytics Overview</h1>
+      {/* Header Section */}
+      <div className="relative rounded-2xl shadow-lg mb-8 overflow-hidden" style={{ background: 'linear-gradient(90deg, #f8fafc 60%, #e0e7ff 100%)' }}>
+        {/* Decorative SVG */}
+        <svg className="absolute top-0 right-0 h-full w-1/3 opacity-20 pointer-events-none" viewBox="0 0 400 150" fill="none">
+          <ellipse cx="200" cy="75" rx="200" ry="75" fill="#6366f1" />
+        </svg>
+        <div className="relative z-1 flex items-center justify-between px-10 py-8 backdrop-blur-md bg-white/60">
+          <div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>Analytics</span>
+              <span>→</span>
+              <span className="font-medium text-gray-900">Dashboard</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="px-4 py-2 bg-white/80 rounded-lg shadow text-right">
-                <div className="text-xs text-gray-500">Total Sales</div>
-                <div className="text-lg font-semibold text-gray-900">{data['Sales']}</div>
-              </div>
-              <button
-                className={`px-4 py-2 bg-white/80 rounded-lg shadow flex items-center gap-2 transition-colors duration-200 border border-transparent hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
-                onClick={() => setCurrentPeriod(currentPeriod === 'Current' ? 'Previous' : 'Current')}
-                aria-label="Toggle Time Period"
-              >
-                <svg className="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M8 7V3M16 7V3M4 11h16M4 19h16M4 15h16" />
-                </svg>
-                <span className="text-sm font-medium text-gray-700">Time Period</span>
-                <span className={`font-semibold ${currentPeriod === 'Current' ? 'text-indigo-700' : 'text-gray-400'}`}>{currentPeriod}</span>
-              </button>
-             
+            <h1 className="text-3xl font-bold text-gray-900 mt-2">Sales Analytics Overview</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="px-4 py-2 bg-white/80 rounded-lg shadow text-right">
+              <div className="text-xs text-gray-500">Total Sales</div>
+              <div className="text-lg font-semibold text-gray-900">{data['Sales']}</div>
             </div>
+            <button
+              className={`px-4 py-2 bg-white/80 rounded-lg shadow flex items-center gap-2 transition-colors duration-200 border border-transparent hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+              onClick={() => setCurrentPeriod(currentPeriod === 'Current' ? 'Previous' : 'Current')}
+              aria-label="Toggle Time Period"
+            >
+              <svg className="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M8 7V3M16 7V3M4 11h16M4 19h16M4 15h16" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">Time Period</span>
+              <span className={`font-semibold ${currentPeriod === 'Current' ? 'text-indigo-700' : 'text-gray-400'}`}>{currentPeriod}</span>
+            </button>
           </div>
         </div>
+      </div>
 
+      <div className="max-w-8xl mx-auto p-6 space-y-6">
         {/* Main Content Grid */}
         <div className="grid grid-cols-12 gap-6">
           {/* Metrics Section */}
           <div className="col-span-12 lg:col-span-9 space-y-6">
             {/* Performance Metrics */}
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               <div className="px-2">
                 <h2 className="text-lg font-semibold text-gray-900">Performance Metrics</h2>
                 <p className="text-sm text-gray-500">Key indicators of advertising reach and engagement</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {performanceMetrics.map(metric => (
                   <MetricCard 
                     key={metric}
@@ -175,18 +187,20 @@ export default function Home() {
                     value={data[metric]}
                     previousValue={sampleData.Previous[metric]}
                     trendData={generateTrendData(metric)}
+                    onMouseEnter={() => setHoveredMetric(metric)}
+                    onMouseLeave={() => setHoveredMetric(null)}
                   />
                 ))}
               </div>
             </div>
 
             {/* Cost Metrics */}
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               <div className="px-2">
                 <h2 className="text-lg font-semibold text-gray-900">Cost Analysis</h2>
                 <p className="text-sm text-gray-500">Financial metrics and cost efficiency indicators</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {costMetrics.map(metric => (
                   <MetricCard 
                     key={metric}
@@ -194,18 +208,20 @@ export default function Home() {
                     value={data[metric]}
                     previousValue={sampleData.Previous[metric]}
                     trendData={generateTrendData(metric)}
+                    onMouseEnter={() => setHoveredMetric(metric)}
+                    onMouseLeave={() => setHoveredMetric(null)}
                   />
                 ))}
               </div>
             </div>
 
             {/* Sales Metrics */}
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               <div className="px-2">
                 <h2 className="text-lg font-semibold text-gray-900">Sales Performance</h2>
                 <p className="text-sm text-gray-500">Revenue and sales-related metrics</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {salesMetrics.map(metric => (
                   <MetricCard 
                     key={metric}
@@ -213,18 +229,20 @@ export default function Home() {
                     value={data[metric]}
                     previousValue={sampleData.Previous[metric]}
                     trendData={generateTrendData(metric)}
+                    onMouseEnter={() => setHoveredMetric(metric)}
+                    onMouseLeave={() => setHoveredMetric(null)}
                   />
                 ))}
               </div>
             </div>
 
             {/* Conversion Metrics */}
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               <div className="px-2">
                 <h2 className="text-lg font-semibold text-gray-900">Conversion Analytics</h2>
                 <p className="text-sm text-gray-500">User behavior and conversion statistics</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {conversionMetrics.map(metric => (
                   <MetricCard 
                     key={metric}
@@ -232,6 +250,8 @@ export default function Home() {
                     value={data[metric]}
                     previousValue={sampleData.Previous[metric]}
                     trendData={generateTrendData(metric)}
+                    onMouseEnter={() => setHoveredMetric(metric)}
+                    onMouseLeave={() => setHoveredMetric(null)}
                   />
                 ))}
               </div>
@@ -243,18 +263,35 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Side - Sales Distribution and Table */}
+          {/* Right Side - Sales Distribution and Table/Detailed View */}
           <div className="col-span-12 lg:col-span-3 space-y-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Sales Distribution</h2>
-                <p className="text-sm text-gray-500">Ad vs Non-Ad Sales Breakdown</p>
+            {!hoveredMetric ? (
+              <>
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Sales Distribution</h2>
+                    <p className="text-sm text-gray-500">Breakdown of sales by category</p>
+                  </div>
+                  <SalesDistributionPie adSales={adSales} totalSales={totalSales} />
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <DetailedDataTable data={[sampleData.Current, sampleData.Previous]} />
+                </div>
+              </>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col justify-center items-center text-center">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Detailed View: {hoveredMetric}</h2>
+                {hoveredMetric.toLowerCase().includes('sales') ? (
+                  <SalesDistributionPie adSales={adSales} totalSales={totalSales} />
+                ) : (
+                  <div className="text-gray-600">
+                    <p className="text-base font-medium mb-2">Current: <span className="font-bold">{data[hoveredMetric]}</span></p>
+                    <p className="text-base font-medium mb-4">Previous: <span className="font-bold">{sampleData.Previous[hoveredMetric]}</span></p>
+                    <p className="text-sm text-gray-500">Pie chart for non-sales metrics would require more specific breakdown data. Displaying raw values.</p>
+                  </div>
+                )}
               </div>
-              <SalesDistributionPie adSales={adSales} totalSales={totalSales} />
-            </div>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <DetailedDataTable data={[sampleData.Current, sampleData.Previous]} />
-            </div>
+            )}
           </div>
         </div>
       </div>

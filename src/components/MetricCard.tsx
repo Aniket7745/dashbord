@@ -17,7 +17,6 @@ import {
 } from 'chart.js';
 import { TrendData } from '@/utils/excelUtils';
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 
 ChartJS.register(
   CategoryScale,
@@ -31,6 +30,8 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   trendData?: TrendData;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const getIconForMetric = (metricName: string) => {
@@ -53,25 +54,10 @@ const formatValue = (value: string | number) => {
   return value;
 };
 
-const metricDescriptions: { [key: string]: string } = {
-  'Impressions': 'The total number of times your ad was shown. High impressions indicate good reach, but not necessarily engagement.',
-  'Clicks': 'The number of times users clicked your ad. More clicks usually mean higher engagement.',
-  'CTPR': 'Click-Through Performance Rate: the ratio of clicks to impressions, showing how effective your ad is at generating interest.',
-  'Ad Cost': 'The total amount spent on advertising. Monitor this to control your marketing budget.',
-  'CPC': 'Cost Per Click: the average amount you pay for each click on your ad.',
-  'ACOS': 'Advertising Cost of Sales: the percentage of sales spent on advertising. Lower is usually better.',
-  'Sales': 'Total sales revenue generated in the selected period.',
-  'Ad Sales': 'Sales attributed directly to your ads.',
-  'Ad Sales %': 'The percentage of total sales that came from ads.',
-  'Ad Quantity': 'The number of items sold through ads.',
-  'Ad GRP': 'Ad Gross Rating Points: a measure of ad exposure and frequency.',
-  'Conversion%': 'The percentage of clicks that resulted in a sale.',
-};
-
 export const MetricCard = ({ title, value, trendData, previousValue }: MetricCardProps & { previousValue?: string | number }) => {
-  const [hovered, setHovered] = useState(false);
-  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null);
   const Icon = getIconForMetric(title);
+  const [isHovered, setIsHovered] = useState(false);
+
   const colors = {
     bg: title.toLowerCase().includes('impressions') ? 'bg-blue-100' :
         title.toLowerCase().includes('clicks') ? 'bg-purple-100' :
@@ -99,7 +85,16 @@ export const MetricCard = ({ title, value, trendData, previousValue }: MetricCar
            title.toLowerCase().includes('sales') ? 'rgb(20, 184, 166)' :
            title.toLowerCase().includes('quantity') ? 'rgb(236, 72, 153)' :
            title.toLowerCase().includes('conversion') ? 'rgb(99, 102, 241)' :
-           'rgb(107, 114, 128)'
+           'rgb(107, 114, 128)',
+    glow: title.toLowerCase().includes('impressions') ? 'hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]' :
+          title.toLowerCase().includes('clicks') ? 'hover:shadow-[0_0_15px_rgba(147,51,234,0.5)]' :
+          title.toLowerCase().includes('ctpr') ? 'hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]' :
+          title.toLowerCase().includes('cost') ? 'hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]' :
+          title.toLowerCase().includes('cpc') ? 'hover:shadow-[0_0_15px_rgba(249,115,22,0.5)]' :
+          title.toLowerCase().includes('sales') ? 'hover:shadow-[0_0_15px_rgba(20,184,166,0.5)]' :
+          title.toLowerCase().includes('quantity') ? 'hover:shadow-[0_0_15px_rgba(236,72,153,0.5)]' :
+          title.toLowerCase().includes('conversion') ? 'hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]' :
+          'hover:shadow-[0_0_15px_rgba(107,114,128,0.5)]'
   };
 
   const defaultTrendData = {
@@ -114,119 +109,126 @@ export const MetricCard = ({ title, value, trendData, previousValue }: MetricCar
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
 
+  const parseValue = (val: string | number) => {
+    if (typeof val === 'string') {
+      const numStr = val.replace(/[^0-9.-]+/g, '');
+      return parseFloat(numStr);
+    }
+    return val;
+  };
+
+  const currentNumericValue = parseValue(value);
+  const previousNumericValue = parseValue(previousValue || 0);
+
+  const percentageChange = previousNumericValue !== 0 
+    ? ((currentNumericValue - previousNumericValue) / previousNumericValue) * 100 
+    : 0;
+
+  const isPositiveChange = percentageChange >= 0;
+
   return (
-    <div
-      className="relative bg-white rounded-xl shadow-lg p-6 transition duration-300 hover:scale-105"
-      style={hovered ? { boxShadow: `0 0 24px 4px ${colors.chart.replace('rgb', 'rgba').replace(')', ',0.18)')}` } : {}}
-      onMouseEnter={e => {
-        const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-        setPanelPos({
-          left: rect.left + rect.width / 2,
-          top: rect.top - 12 // 12px offset for -top-6
-        });
-        setHovered(true);
-      }}
-      onMouseLeave={() => setHovered(false)}
+    <div 
+      className={`relative bg-white rounded-xl shadow-lg p-6 transition-all duration-300 ${colors.glow}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {hovered && panelPos && isClient && ReactDOM.createPortal(
-        <div
-          className="fixed z-[9999] w-[420px] bg-white rounded-2xl shadow-2xl p-5 border border-gray-200 animate-fade-in-up"
-          style={{
-            left: panelPos.left - 210, // center horizontally
-            top: Math.max(panelPos.top, 16), // don't go above 16px from top
-          }}
-          onMouseLeave={() => setHovered(false)}
-        >
-          <h3 className="text-2xl font-extrabold text-gray-900 mb-3">{title.toUpperCase().replace(/_/g, ' ')}</h3>
-          <div className="flex flex-row items-center gap-4 mb-3">
-            <div>
-              <div className="text-gray-500 text-sm">Current</div>
-              <div className="text-2xl font-bold mb-2" style={{ color: colors.chart }}>{formatValue(value)}</div>
-              <div className="text-gray-500 text-sm">Previous</div>
-              <div className="text-xl font-semibold text-gray-700">{formatValue(previousValue ?? 0)}</div>
+      {!isHovered ? (
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-lg ${colors.bg}`}>
+                <Icon className={`h-5 w-5 ${colors.text}`} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-700">
+                {title.toUpperCase().replace(/_/g, ' ')}
+              </h3>
             </div>
-            <div className="flex-1">
-              <p className="text-gray-600 text-sm mb-0">{metricDescriptions[title.replace(/_/g, ' ')] || 'No description available.'}</p>
+            <div className="text-3xl font-extrabold text-gray-900">
+              {formatValue(value)}
             </div>
           </div>
-        </div>,
-        document.body
+          <div className="h-16 mt-4">
+            {isClient && (
+              <Line
+                data={{
+                  labels: chartData.labels,
+                  datasets: [{
+                    data: chartData.values,
+                    fill: true,
+                    borderColor: colors.chart,
+                    backgroundColor: (context) => {
+                      const ctx = context.chart.ctx;
+                      const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+                      const rgba = colors.chart.replace('rgb', 'rgba').replace(')', ',0.8)');
+                      gradient.addColorStop(0, rgba);
+                      gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+                      return gradient;
+                    },
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: (ctx) => {
+                      const data = chartData.values;
+                      const index = ctx.dataIndex;
+                      if (index === data.length - 1 || // Latest value
+                          index === data.indexOf(Math.max(...data)) || // Max value
+                          index === data.indexOf(Math.min(...data))) { // Min value
+                        return 4;
+                      }
+                      return 0;
+                    },
+                    pointBackgroundColor: 'white',
+                    pointBorderColor: colors.chart,
+                    pointBorderWidth: 2,
+                  }],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                  },
+                  scales: {
+                    x: {
+                      display: false,
+                      grid: {
+                        display: false,
+                      },
+                    },
+                    y: {
+                      display: false,
+                      grid: {
+                        display: false,
+                      },
+                      min: chartData.min * 0.9,
+                      max: chartData.max * 1.1,
+                    },
+                  },
+                }}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col justify-center items-start h-full">
+          <h3 className="text-base font-semibold text-gray-700 mb-2">
+            {title.toUpperCase().replace(/_/g, ' ')}
+          </h3>
+          <div className="text-sm text-gray-500 mb-1">
+            Current: <span className="font-bold text-gray-900">{formatValue(value)}</span>
+          </div>
+          <div className="text-sm text-gray-500 mb-3">
+            Previous: <span className="font-bold text-gray-900">{formatValue(previousValue || 'N/A')}</span>
+          </div>
+          <div className={`text-xl font-bold ${
+            isPositiveChange ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {isPositiveChange ? '+' : ''}{percentageChange.toFixed(1)}%
+            <span className="text-base font-normal text-gray-500 ml-1">vs previous</span>
+          </div>
+        </div>
       )}
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${colors.bg}`}>
-              <Icon className={`h-5 w-5 ${colors.text}`} />
-            </div>
-            <h3 className="text-base font-semibold text-gray-700">
-              {title.toUpperCase().replace(/_/g, ' ')}
-            </h3>
-          </div>
-          <div className="text-3xl font-extrabold text-gray-900">
-            {formatValue(value)}
-          </div>
-        </div>
-        <div className="h-16 mt-4">
-          <Line
-            data={{
-              labels: chartData.labels,
-              datasets: [{
-                data: chartData.values,
-                fill: true,
-                borderColor: colors.chart,
-                backgroundColor: (context) => {
-                  const ctx = context.chart.ctx;
-                  const gradient = ctx.createLinearGradient(0, 0, 0, 160);
-                  const rgba = colors.chart.replace('rgb', 'rgba').replace(')', ',0.8)');
-                  gradient.addColorStop(0, rgba);
-                  gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-                  return gradient;
-                },
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: (ctx) => {
-                  const data = chartData.values;
-                  const index = ctx.dataIndex;
-                  if (index === data.length - 1 || // Latest value
-                      index === data.indexOf(Math.max(...data)) || // Max value
-                      index === data.indexOf(Math.min(...data))) { // Min value
-                    return 4;
-                  }
-                  return 0;
-                },
-                pointBackgroundColor: 'white',
-                pointBorderColor: colors.chart,
-                pointBorderWidth: 2,
-              }],
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: false,
-                },
-              },
-              scales: {
-                x: {
-                  display: false,
-                  grid: {
-                    display: false,
-                  },
-                },
-                y: {
-                  display: false,
-                  grid: {
-                    display: false,
-                  },
-                  min: chartData.min * 0.9,
-                  max: chartData.max * 1.1,
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
     </div>
   );
 };
